@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: var(--font-space-grotesk), ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+body {
+  background: radial-gradient(1200px 600px at 10% -20%, #ffe6bf 0%, transparent 60%),
+    radial-gradient(1200px 600px at 100% 0%, #d9f3ff 0%, transparent 55%), #f7f8fb;
+  color: #0f172a;
+}
