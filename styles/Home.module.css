@@ -3,12 +3,16 @@
   width: min(1100px, 92vw);
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .hero {
   text-align: center;
-  margin-top: 0.75rem;
+  margin-top: 0.5rem;
+  flex: 0 0 auto;
 }
 
 .eyebrow {
@@ -35,9 +39,11 @@
 .main {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   align-items: center;
-  gap: 0.8rem;
+  gap: 0.6rem;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .cloudform {
@@ -209,13 +215,15 @@
   justify-content: center;
   align-items: center;
   width: 100%;
-  padding: 0.3rem 0 1rem;
+  padding: 0.15rem 0 0.5rem;
   flex-direction: column;
+  flex: 0 0 auto;
 }
 
 .cloud {
   width: min(920px, 92vw);
-  height: min(68vh, 700px);
+  flex: 1;
+  min-height: 0;
   background: rgba(255, 255, 255, 0.9);
   border-radius: 18px;
   border: 1px solid #dbe2ea;
@@ -228,7 +236,7 @@
 
 @media (max-width: 640px) {
   .cloud {
-    height: 64vh;
+    width: 92vw;
   }
 
   .title {

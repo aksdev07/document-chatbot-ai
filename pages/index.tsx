@@ -264,11 +264,6 @@ export default function Home() {
             )}
           </main>
         </div>
-        <footer className="m-auto p-4">
-          <a href="https://github.com/aksdev07/ai-pdf-chatbot-langchain-feat-vectordbqa">
-            Powered by LangChainAI. Demo built by Anuj (GitHub: @aksdev07).
-          </a>
-        </footer>
       </Layout>
     </>
   );
