@@ -1,99 +1,165 @@
-# GPT-4 & LangChain - Create a ChatGPT Chatbot for Your PDF Files
+# Document Chatbot AI (Ollama + Next.js)
 
-**NOTE: The logic in the codebase is mostly outddated. To see the latest version of the ai pdf chatbot look at the main branch [here](https://github.com/mayooear/ai-pdf-chatbot-langchain)**
+Local RAG chatbot for PDF files using:
+- Next.js (UI + API route)
+- Ollama (embeddings + chat)
+- Local vector index (`data/local-index.json`)
 
-Use the new GPT-4 api to build a chatGPT chatbot for multiple Large PDF files.
+No external vector database is required for the current flow.
 
-Tech stack used includes LangChain, Pinecone, Typescript, Openai, and Next.js. LangChain is a framework that makes it easier to build scalable AI/LLM apps and chatbots. Pinecone is a vectorstore for storing embeddings and your PDF in text to later retrieve similar docs.
+## How It Works
 
-[Tutorial video](https://www.youtube.com/watch?v=ih9PBGVVOO4)
+1. Put PDF files in `docs/`.
+2. Run ingestion (`npm run ingest`) to:
+   - parse PDFs
+   - chunk text
+   - create embeddings with Ollama
+   - save vectors to `data/local-index.json`
+3. Start app (`npm run dev`).
+4. Ask questions in UI.
+5. API route retrieves top matching chunks from local index and sends context to Ollama chat model.
 
-The visual guide of this repo and tutorial is in the `visual guide` folder.
+## Prerequisites
 
-If you run into errors, please review the troubleshooting section further down this page.
+- Node.js >= 18
+- Ollama installed and running
 
-Prelude: Please make sure you have already downloaded node on your system and the version is 18 or greater.
+## Setup
 
-## Development
+1. Install dependencies:
 
-1. Clone the repo or download the ZIP
-
-```
-git clone [github https url]
-```
-
-
-2. Install packages
-
-First run `npm install yarn -g` to install yarn globally (if you haven't already).
-
-Then run:
-
-```
-yarn install
-```
-After installation, you should now see a `node_modules` folder.
-
-3. Set up your `.env` file
-
-- Copy `.env.example` into `.env`
-  Your `.env` file should look like this:
-
-```
-OPENAI_API_KEY=
-
-PINECONE_API_KEY=
-PINECONE_ENVIRONMENT=
-
-PINECONE_INDEX_NAME=
-
+```bash
+npm install
 ```
 
-- Visit [openai](https://help.openai.com/en/articles/4936850-where-do-i-find-my-secret-api-key) to retrieve API keys and insert into your `.env` file.
-- Visit [pinecone](https://pinecone.io/) to create and retrieve your API keys, and also retrieve your environment and index name from the dashboard.
+2. Create/update `.env`:
 
-4. In the `config` folder, replace the `PINECONE_NAME_SPACE` with a `namespace` where you'd like to store your embeddings on Pinecone when you run `npm run ingest`. This namespace will later be used for queries and retrieval.
+```env
+OLLAMA_BASE_URL=http://127.0.0.1:11434
+OLLAMA_EMBED_MODEL=nomic-embed-text
+OLLAMA_CHAT_MODEL=llama3.1:8b
+```
 
-5. In `utils/makechain.ts` chain change the `QA_PROMPT` for your own usecase. Change `modelName` in `new OpenAI` to `gpt-4`, if you have access to `gpt-4` api. Please verify outside this repo that you have access to `gpt-4` api, otherwise the application will not work.
+3. Pull required Ollama models:
 
-## Convert your PDF files to embeddings
+```bash
+ollama pull nomic-embed-text
+ollama pull llama3.1:8b
+```
 
-**This repo can load multiple PDF files**
+4. Verify Ollama is reachable:
 
-1. Inside `docs` folder, add your pdf files or folders that contain pdf files.
+```bash
+curl http://127.0.0.1:11434/api/tags
+```
 
-2. Run the script `npm run ingest` to 'ingest' and embed your docs. If you run into errors troubleshoot below.
+## Add Documents and Ingest
 
-3. Check Pinecone dashboard to verify your namespace and vectors have been added.
+1. Put one or more PDF files in `docs/`.
+2. Run:
 
-## Run the app
+```bash
+npm run ingest
+```
 
-Once you've verified that the embeddings and content have been successfully added to your Pinecone, you can run the app `npm run dev` to launch the local dev environment, and then type a question in the chat interface.
+Expected success log:
+- `processed docs/<file>.pdf: <n> chunk(s)`
+- `ingestion complete: <n> chunk(s) saved to data/local-index.json`
+
+## Run the Chat UI
+
+```bash
+npm run dev
+```
+
+Open `http://localhost:3000`.
+
+## Useful Commands
+
+```bash
+npm run dev
+npm run ingest
+npm run type-check
+npm run build
+npm run start
+```
+
+## Important Files
+
+- `scripts/ingest-data.ts` - PDF parsing, chunking, embedding, index generation
+- `utils/local-rag.ts` - local index schema, read/write, cosine similarity search
+- `pages/api/chat.ts` - query embed + retrieval + Ollama chat completion
+- `pages/index.tsx` - chat interface
+- `styles/Home.module.css` - primary UI styles
 
 ## Troubleshooting
 
-In general, keep an eye out in the `issues` and `discussions` section of this repo for solutions.
+### 1) Could not connect to Ollama at `127.0.0.1:11434`
 
-**General errors**
+- Ensure Ollama is running.
+- Verify:
 
-- Make sure you're running the latest Node version. Run `node -v`
-- Try a different PDF or convert your PDF to text first. It's possible your PDF is corrupted, scanned, or requires OCR to convert to text.
-- `Console.log` the `env` variables and make sure they are exposed.
-- Make sure you're using the same versions of LangChain and Pinecone as this repo.
-- Check that you've created an `.env` file that contains your valid (and working) API keys, environment and index name.
-- If you change `modelName` in `OpenAI`, make sure you have access to the api for the appropriate model.
-- Make sure you have enough OpenAI credits and a valid card on your billings account.
-- Check that you don't have multiple OPENAPI keys in your global environment. If you do, the local `env` file from the project will be overwritten by systems `env` variable.
-- Try to hard code your API keys into the `process.env` variables if there are still issues.
+```bash
+curl http://127.0.0.1:11434/api/tags
+```
 
-**Pinecone errors**
+- Confirm `OLLAMA_BASE_URL` in `.env`.
 
-- Make sure your pinecone dashboard `environment` and `index` matches the one in the `pinecone.ts` and `.env` files.
-- Check that you've set the vector dimensions to `1536`.
-- Make sure your pinecone namespace is in lowercase.
-- Pinecone indexes of users on the Starter(free) plan are deleted after 7 days of inactivity. To prevent this, send an API request to Pinecone to reset the counter before 7 days.
-- Retry from scratch with a new Pinecone project, index, and cloned repo.
+### 2) `model '...' not found`
 
-## Credit
+- Check installed models:
 
-Frontend of this repo is inspired by [langchain-chat-nextjs](https://github.com/zahidkhawaja/langchain-chat-nextjs)
+```bash
+ollama list
+```
+
+- Set `.env` model names to exact installed tags.
+- Pull missing model:
+
+```bash
+ollama pull <model-name>
+```
+
+### 3) `Local index not found. Run npm run ingest first.`
+
+- Run ingestion first:
+
+```bash
+npm run ingest
+```
+
+### 4) Next dev lock issue
+
+```bash
+rm -f .next/dev/lock
+npm run dev
+```
+
+## Deployment Notes
+
+This project can run on a server, but Ollama must also be accessible from that server runtime.
+
+- If Ollama runs on the same machine:
+  - `OLLAMA_BASE_URL=http://127.0.0.1:11434`
+- If Ollama runs on another machine/container:
+  - Set `OLLAMA_BASE_URL` to that reachable internal URL (for example `http://ollama:11434`).
+- Ensure required models are pulled on the Ollama host:
+  - `nomic-embed-text`
+  - your selected chat model (for example `llama3.1:8b`)
+- Run ingestion in the deployed environment (or ship `data/local-index.json` with your release).
+
+Production commands:
+
+```bash
+npm run build
+npm run start
+```
+
+Operational recommendations:
+- Restrict network access to Ollama endpoint (private network / firewall rules).
+- Keep `.env` out of source control.
+- Add health checks for both app and Ollama `/api/tags`.
+
+## License
+
+MIT (see `package.json`).
